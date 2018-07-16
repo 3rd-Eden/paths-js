@@ -23,23 +23,28 @@ let box = (datum, accessor, sort) => {
   }
 }
 
-export default function({data, xaccessor, yaccessor, width, height, closed, min, max, sort = true}) {
+export default function({data, xaccessor, yaccessor, width, height, closed, ymin, ymax, xmax, xmin, sort = true}) {
   if (! xaccessor) { xaccessor = ([x, y]) => x }
   if (! yaccessor) { yaccessor = ([x, y]) => y }
+
   let f = (i) => [xaccessor(i), yaccessor(i)]
+
   let arranged = data.map((datum) => box(datum, f, sort))
 
-  let xmin = minBy(arranged, (d) => d.xmin)
-  let xmax = maxBy(arranged, (d) => d.xmax)
-  let ymin = (min == null) ? minBy(arranged, (d) => d.ymin) : min
-  let ymax = (max == null) ? maxBy(arranged, (d) => d.ymax) : max
+  let _xmin = (xmin === null) ? minBy(arranged, (d) => d.xmin) : xmin
+  let _xmax = (xmax === null) ? maxBy(arranged, (d) => d.xmax) : xmax
+
+  let _ymin = (ymin == null) ? minBy(arranged, (d) => d.ymin) : ymin
+  let _ymax = (ymax == null) ? maxBy(arranged, (d) => d.ymax) : ymax
+
   if (closed) {
-    ymin = Math.min(ymin, 0)
-    ymax = Math.max(ymax, 0)
+    _ymin = Math.min(_ymin, 0)
+    _ymax = Math.max(_ymax, 0)
   }
-  let base = closed ? 0 : ymin
-  let xscale = Linear([xmin, xmax], [0, width])
-  let yscale = Linear([ymin, ymax], [height, 0])
+
+  let base = closed ? 0 : _ymin
+  let xscale = Linear([_xmin, _xmax], [0, width])
+  let yscale = Linear([_ymin, _ymax], [height, 0])
   let scale = ([x, y]) => [xscale(x), yscale(y)]
 
   return {
